@@ -1,0 +1,12 @@
+
+.DS_Store
+*.gcda
+*.gcno
+*.tmp.txt
+cs371p-life.bbprojectd
+Doxyfile
+latex
+run_LifeCell
+run_LifeConway
+run_LifeFredkin
+test_Life
