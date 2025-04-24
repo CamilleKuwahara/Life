@@ -33,8 +33,6 @@ public:
     ~ConwayCell() = default;
 
     void evolve() override {
-        // Dummy evolve rule for compatibility
-        // Normally would use neighbors, but this matches your interface
         _state = !_state;
     }
 
