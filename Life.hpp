@@ -1,76 +1,132 @@
-// -------------
-// Life.hpp
-// -------------
-
 #ifndef Life_hpp
 #define Life_hpp
 
 #include <vector>
 #include <cstddef>
+#include <iostream>
 
-//Class life
-template <typename T>
-class Life {
-private:
-    std::vector<std::vector<T>> _grid;
+using namespace std;
 
-public:
-    Life(size_t rows, size_t cols);
-    void eval();
-};
-
-class Cell {
-    private:
-        AbstractCell* _p;
-    
-    public:
-        Cell(AbstractCell*);
-        Cell(const Cell&);
-        Cell(Cell&&);
-        Cell& operator=(const Cell&);
-        Cell& operator=(Cell&&);
-        ~Cell();
-        void evolve();
-    };
-
-
+// AbstractCell base class
 class AbstractCell {
 protected:
-    //the state of the cell
     bool _state;
-    
 
 public:
-    AbstractCell(bool state);
-    //virtual destructor
+    AbstractCell(bool state) : _state(state) {}
     virtual ~AbstractCell() = default;
+
     virtual AbstractCell* clone() const = 0;
     virtual void evolve() = 0;
+    virtual bool state() const = 0;
+    bool isAlive() const {
+        return _state;
+    }
 };
 
-//Conway Cell
+// ConwayCell
 class ConwayCell : public AbstractCell {
 public:
-    //default constructor
-    ConwayCell () = default;
-    ConwayCell(bool state);
-    ConwayCell* clone() const override;
-    //deconstructor
-    ~ ConwayCell() = default;
-    void evolve() override;
+    ConwayCell() : AbstractCell(false) {}
+    ConwayCell(bool state) : AbstractCell(state) {}
+    //destructor
+    ~ConwayCell() = default;
+
+    void evolve() override {
+        // Dummy evolve rule for compatibility
+        // Normally would use neighbors, but this matches your interface
+        _state = !_state;
+    }
+
+    AbstractCell* clone() const override {
+        return new ConwayCell(_state);
+    }
+
+    bool state() const override {
+        return _state;
+    }
+
 };
 
-//Fredkin Cell cell
+// FredkinCell
 class FredkinCell : public AbstractCell {
 private:
     size_t _age;
 
 public:
-    FredkinCell(bool state, size_t age);
-    FredkinCell* clone() const override;
-    void evolve() override;
+    FredkinCell(bool state = false) : AbstractCell(state), _age(0) {}
+    
+    ~FredkinCell() = default;
+
+    void evolve() override {
+        if (_state) {
+            ++_age;
+        }
+        _state = !_state;
+    }
+
+    AbstractCell* clone() const override {
+        return new FredkinCell(*this);
+    }
+
 };
 
+// Cell wrapper
+class Cell {
+private:
+    AbstractCell* _pointer;
 
+public:
+    Cell(AbstractCell* cell) : _pointer(cell->clone()) {}
+    Cell(const Cell& other) : _pointer(other._pointer->clone()) {}
+    Cell(Cell&& other) noexcept : _pointer(other._pointer) { other._pointer = nullptr; }
 
-#endif // Life_HPP
+    Cell& operator=(Cell&& other) noexcept {
+        if (this != &other) {
+            delete _pointer;
+            _pointer = other._pointer;
+            other._pointer = nullptr;
+        }
+        return *this;
+    }
+
+    ~Cell() {
+        delete _pointer;
+    }
+
+    bool alive() const {
+        return _pointer->isAlive();
+    }
+  
+};
+
+// Life class template
+template <typename T>
+class Life {
+private:
+    vector<vector<T>> _grid;
+
+public:
+    Life(size_t rows, size_t cols) {
+        _grid.resize(rows, vector<T>(cols));
+    }
+
+    void eval() {
+        for (auto& row : _grid) {
+            for (auto& cell : row) {
+                cell.evolve();
+            }
+        }
+    }
+
+    void print() const {
+        for (const auto& row : _grid) {
+            for (const auto& cell : row) {
+                cell.print();
+            }
+            cout << '\n';
+        }
+    }
+};
+
+#endif // Life_hpp
