@@ -8,9 +8,9 @@
 
 * HackerRank ID: camillekuwahara
 
-* Git SHA: 
+* Git SHA: 2c63e3dc
 
-* GitLab Pipelines:
+* GitLab Pipelines: https://gitlab.com/camillekuwahara1/cs371p-life/-/pipelines
 
 * Estimated completion time: 15
 

@@ -1,0 +1,101 @@
+commit 2c63e3dcc3ac987ce5d5df31fdcab76151a88632
+Author: camkuwa <camillekuwahara@gmail.com>
+Date:   Fri Apr 25 23:23:42 2025 -0500
+
+    added uml for life
+
+commit 78c5029f95bd1b5be521b85e5cdcfd3afe0f09e0
+Author: camkuwa <camillekuwahara@gmail.com>
+Date:   Fri Apr 25 22:04:26 2025 -0500
+
+    fixed testcases
+
+commit 93cc204122e34cc16b3c07ddbb224830ab5d1813
+Author: camkuwa <camillekuwahara@gmail.com>
+Date:   Fri Apr 25 22:04:07 2025 -0500
+
+    add testcases
+
+commit 2110145d044d0f5246b095a397437ff7a8de8ae1
+Author: camkuwa <camillekuwahara@gmail.com>
+Date:   Fri Apr 25 22:01:19 2025 -0500
+
+    fixed main
+
+commit 9a11c22d89c05b80a23c20125357919d33b62d9d
+Author: camkuwa <camillekuwahara@gmail.com>
+Date:   Fri Apr 25 21:58:23 2025 -0500
+
+    updated readme
+
+commit 27016fba525e185765748b7508309528826b7722
+Author: camkuwa <camillekuwahara@gmail.com>
+Date:   Fri Apr 25 21:57:39 2025 -0500
+
+    add comments
+
+commit 4f5a30cee2bec50c564833998b7f83ab5c24a9d7
+Author: camkuwa <camillekuwahara@gmail.com>
+Date:   Fri Apr 25 21:30:46 2025 -0500
+
+    added test cases
+
+commit 9862c5b92a303214896dc02d4bae7b188f504676
+Author: camkuwa <camillekuwahara@gmail.com>
+Date:   Fri Apr 25 21:16:03 2025 -0500
+
+    updated life.hpp, and added mains
+
+commit 7aad5b0188deea7437534ea50e239a13d959f93b
+Author: camkuwa <camillekuwahara@gmail.com>
+Date:   Fri Apr 25 17:47:31 2025 -0500
+
+    life update
+
+commit 39d0271ea65a4e6ae8611ba5d26f4716203166c5
+Author: camkuwa <camillekuwahara@gmail.com>
+Date:   Thu Apr 24 17:58:44 2025 -0500
+
+    update life again
+
+commit 3e51d4938667d6c6fe0aa63fc6167f8a0ef74b49
+Author: camkuwa <camillekuwahara@gmail.com>
+Date:   Thu Apr 24 00:59:32 2025 -0500
+
+    update
+
+commit 71cff118a3b19fd40cff6af87176bc5028aaaa57
+Author: camkuwa <camillekuwahara@gmail.com>
+Date:   Thu Apr 24 00:56:24 2025 -0500
+
+    update life
+
+commit ea8dc157e3c8c74e7e4550f8c362be6155807e1f
+Author: camkuwa <camillekuwahara@gmail.com>
+Date:   Wed Apr 23 15:07:56 2025 -0500
+
+    add neccessary files
+
+commit e685338ff41f81a23a8e40329153e52d38648184
+Author: camkuwa <camillekuwahara@gmail.com>
+Date:   Wed Apr 23 14:55:27 2025 -0500
+
+    change life
+
+commit 7aa0541ec079bd16d3617221244957356eab7f93
+Author: camkuwa <camillekuwahara@gmail.com>
+Date:   Tue Apr 22 17:07:22 2025 -0500
+
+    create needed files
+
+commit 7a07daf8b7bd905161c1ec4f7c88f2173ef61fde
+Author: camkuwa <camillekuwahara@gmail.com>
+Date:   Tue Apr 22 16:59:16 2025 -0500
+
+    initial commit
+
+commit 19486b24349a6b6690edf61e37b363999e4eb384
+Author: Camille M Kuwahara <camillekuwahara@utexas.edu>
+Date:   Tue Apr 22 21:32:57 2025 +0000
+
+    Initial commit
