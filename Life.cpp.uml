@@ -1,0 +1,83 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+' Relationships
+Life<T>     *-- "*" Cell
+Cell        *-- "1" AbstractCell
+AbstractCell <|-- ConwayCell
+AbstractCell <|-- FredkinCell
+
+' Enum
+enum CellKind {
+    Fredkin
+    Conway
+}
+
+' Struct / Class
+class Generation {
+    + CellKind kind_of_cell
+    + bool alive
+    + int age
+}
+
+' Abstract Class
+abstract class AbstractCell {
+    - bool _state
+    + AbstractCell(bool state)
+    + virtual ~AbstractCell()
+    + clone() : AbstractCell*
+    + evolve(int neighbors) : Generation
+    + print(ostream& os)
+    + affectsDirection(int dr, int dc) : bool
+    + next_Evolution(int& count)
+}
+
+' Concrete Classes
+class ConwayCell {
+    + ConwayCell(bool state)
+    + clone() : AbstractCell*
+    + evolve(int neighbors) : Generation
+    + update(int neighbors)
+    + print(ostream& os)
+    + affectsDirection(int dr, int dc) : bool
+    + next_Evolution(int& count)
+}
+
+class FredkinCell {
+    - size_t _age
+    + FredkinCell(bool state, size_t age)
+    + clone() : AbstractCell*
+    + evolve(int neighbors) : Generation
+    + update(int neighbors)
+    + print(ostream& os)
+    + affectsDirection(int dr, int dc) : bool
+    + next_Evolution(int& count)
+}
+
+class Cell {
+    - AbstractCell* _cell
+    + Cell()
+    + Cell(bool s)
+    + Cell(const Cell&)
+    + Cell(AbstractCell*)
+    + ~Cell()
+    + operator=(const Cell&)
+    + update(int neighbor_count)
+    + print(ostream& os)
+    + affectsDirection(int dr, int dc) : bool
+    + next_Evolution(int& count)
+}
+
+class Life<T> {
+    - vector<vector<T>> _grid
+    - size_t _rows
+    - size_t _cols
+    - int _generation
+    + Life(size_t rows, size_t cols)
+    + replace_cell(int r, int c)
+    + eval()
+    + print_cell(size_t r, size_t c, ostream& os)
+    + population() : int
+}
+
+@enduml

@@ -199,7 +199,7 @@ public:
     void next_Evolution(int& count) const {
         _cell->next_Evolution(count);
     }
-
+    
 };
 
 // Main Life class handling the simulation
