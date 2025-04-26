@@ -1,0 +1,419 @@
+        -:    0:Source:Life.hpp
+        -:    0:Graph:test_Life.gcno
+        -:    0:Data:test_Life.gcda
+        -:    0:Runs:1
+        -:    1:#ifndef Life_hpp
+        -:    2:#define Life_hpp
+        -:    3:
+        -:    4:#include <vector>
+        -:    5:#include <iostream>
+        -:    6:#include <cassert>
+        -:    7:#include <type_traits>
+        -:    8:
+        -:    9:using namespace std;
+        -:   10:
+        -:   11:enum class CellKind { 
+        -:   12:    Fredkin,
+        -:   13:    Conway
+        -:   14:};
+        -:   15:
+        -:   16:// Forward declaration of Generation struct
+        -:   17:struct Generation {
+        -:   18:    CellKind kind_of_cell;
+        -:   19:    bool alive;
+        -:   20:    int age;
+        -:   21:
+       30:   22:    Generation(CellKind k = CellKind::Fredkin, bool a = false, int age = 0)
+       30:   23:        : kind_of_cell(k), alive(a), age(age) {}
+        -:   24:};
+        -:   25:
+        -:   26:// Abstract cell base class
+        -:   27:class AbstractCell {
+        -:   28:protected:
+        -:   29:    bool _state;
+        -:   30:    
+        -:   31:public:
+       34:   32:    AbstractCell(bool state = false) : _state(state) {}
+      67*:   33:    virtual ~AbstractCell() = default;
+------------------
+_ZN12AbstractCellD0Ev:
+    #####:   33:    virtual ~AbstractCell() = default;
+------------------
+_ZN12AbstractCellD2Ev:
+       67:   33:    virtual ~AbstractCell() = default;
+------------------
+        -:   34:    
+        -:   35:    virtual AbstractCell* clone() const = 0;
+        -:   36:    virtual Generation evolve(int neighbors) = 0;
+        -:   37:    virtual void print(ostream& os) const = 0;
+        -:   38:    virtual bool affectsDirection(int dr, int dc) const = 0;
+        -:   39:    virtual void next_Evolution(int& count) const = 0;
+        -:   40:};
+        -:   41:
+        -:   42:// Conway Cell implementation
+        -:   43:class ConwayCell : public AbstractCell {
+        -:   44:public:
+       12:   45:    ConwayCell(bool state = false) : AbstractCell(state) {}
+        -:   46:    
+        1:   47:    AbstractCell* clone() const override {
+        1:   48:        return new ConwayCell(*this);
+        -:   49:    }
+        -:   50:    
+        9:   51:    Generation evolve(int neighbors) override {
+        9:   52:        if (_state) {
+       3*:   53:            _state = (neighbors == 2 || neighbors == 3);
+        -:   54:        } else {
+        6:   55:            _state = (neighbors == 3);
+        -:   56:        }
+        9:   57:        return Generation(CellKind::Conway, _state);
+        -:   58:    }
+        -:   59:    
+        9:   60:    void update(int neighbors) { 
+        9:   61:        evolve(neighbors); 
+        9:   62:    }
+        -:   63:    
+       22:   64:    void print(ostream& os) const override {
+       22:   65:        os << (_state ? '*' : '.');
+       22:   66:    }
+        -:   67:    
+       18:   68:    bool affectsDirection(int, int) const override {
+       18:   69:        return true; // Conway cells affect all 8 neighbors
+        -:   70:    }
+        -:   71:    
+       11:   72:    void next_Evolution(int& count) const override {
+       11:   73:        if (_state) ++count;
+       11:   74:    }
+        -:   75:};
+        -:   76:
+        -:   77:// Fredkin Cell implementation
+        -:   78:class FredkinCell : public AbstractCell {
+        -:   79:private:
+        -:   80:    size_t _age = 0;
+        -:   81:    
+        -:   82:public:
+       22:   83:    FredkinCell(bool state = false, size_t age = 0)
+       22:   84:        : AbstractCell(state), _age(age) {}
+        -:   85:    
+       19:   86:    AbstractCell* clone() const override {
+       19:   87:        return new FredkinCell(*this);
+        -:   88:    }
+        -:   89:    
+       21:   90:    Generation evolve(int neighbors) override {
+       21:   91:        bool was_alive = _state;
+        -:   92:        
+       21:   93:        if (_state) {
+        8:   94:            _state = !(neighbors == 0 || neighbors == 2 || neighbors == 4);
+        -:   95:        } else {
+       13:   96:            _state = (neighbors == 1 || neighbors == 3);
+        -:   97:        }
+        -:   98:        
+        -:   99:        // Increment age if the cell stayed alive
+       21:  100:        _age += (was_alive && _state) ? 1 : 0;
+        -:  101:        
+       21:  102:        return Generation(CellKind::Fredkin, _state, static_cast<int>(_age));
+        -:  103:    }
+        -:  104:    
+        -:  105:    void update(int neighbors) { 
+        -:  106:        evolve(neighbors); 
+        -:  107:    }
+        -:  108:    
+        2:  109:    void print(ostream& os) const override {
+        2:  110:        if (_state) {
+        2:  111:            if (_age >= 10) os << '+';
+    #####:  112:            else os << static_cast<char>('0' + _age);
+        -:  113:        } else {
+    #####:  114:            os << '-';
+        -:  115:        }
+        2:  116:    }
+        -:  117:    
+        8:  118:    bool affectsDirection(int dr, int dc) const override {
+        8:  119:        return (dr * dc) == 0; // Fredkin cells affect only cardinal directions
+        -:  120:    }
+        -:  121:    
+       27:  122:    void next_Evolution(int& count) const override {
+       27:  123:        if (_state) ++count;
+       27:  124:    }
+        -:  125:};
+        -:  126:
+        -:  127:// Cell wrapper class
+        -:  128:class Cell {
+        -:  129:private:
+        -:  130:    AbstractCell* _cell;
+        -:  131:    
+        -:  132:public:
+        5:  133:    Cell() : _cell(new FredkinCell()) {}
+        3:  134:    Cell(bool s) : _cell(new FredkinCell(s)) {}
+        5:  135:    Cell(AbstractCell* ptr) : _cell(ptr) {}
+       13:  136:    Cell(const Cell& other) : _cell(other._cell->clone()) {}
+       26:  137:    ~Cell() { delete _cell; }
+        -:  138:    
+        6:  139:    Cell& operator=(const Cell& other) {
+        6:  140:        if (this != &other) {
+        5:  141:            AbstractCell* new_cell = other._cell->clone();
+        5:  142:            delete _cell;
+        5:  143:            _cell = new_cell;
+        -:  144:        }
+        6:  145:        return *this;
+        -:  146:    }
+        -:  147:    
+       13:  148:    void update(int neighbor_count) {
+      13*:  149:        assert(_cell != nullptr);
+       13:  150:        Generation state = _cell->evolve(neighbor_count);
+        -:  151:        
+        -:  152:        // Handle Cell-of-Life evolution (Fredkin -> Conway after age 2)
+       13:  153:        if (state.kind_of_cell == CellKind::Fredkin && 
+       13:  154:            state.alive && 
+        8:  155:            state.age == 2) {
+        2:  156:            delete _cell;
+        2:  157:            _cell = new ConwayCell(true);
+        -:  158:        }
+       13:  159:    }
+        -:  160:    
+        -:  161:    // Interface methods
+        -:  162:    void print(ostream& os) const { _cell->print(os); }
+        8:  163:    bool affectsDirection(int dr, int dc) const { return _cell->affectsDirection(dr, dc); }
+       29:  164:    void next_Evolution(int& count) const { _cell->next_Evolution(count); }
+        -:  165:};
+        -:  166:
+        -:  167:// Life template class
+        -:  168:template <typename T>
+        -:  169:class Life {
+        -:  170:private:
+        -:  171:    vector<vector<T>> _grid;
+        -:  172:    size_t _rows;
+        -:  173:    size_t _cols;
+        -:  174:    int _generation = 0;
+        -:  175:    
+        2:  176:    vector<vector<int>> compute_neighbor_counts() const {
+       2*:  177:        assert(!_grid.empty() && !_grid[0].empty());
+        -:  178:        
+        4:  179:        vector<vector<int>> counts(_rows, vector<int>(_cols, 0));
+        -:  180:        
+        -:  181:        // Directions: for north, east, south, west, and diagonals
+        2:  182:        const vector<pair<int, int>> directions = {
+        -:  183:            {-1, 0}, {1, 0}, {0, -1}, {0, 1},    // N, S, W, E
+        -:  184:            {-1, -1}, {-1, 1}, {1, -1}, {1, 1}   // diagonals
+        -:  185:        };
+        -:  186:        
+        -:  187:        // For each cell in the grid
+        8:  188:        for (size_t r = 0; r < _rows; ++r) {
+       24:  189:            for (size_t c = 0; c < _cols; ++c) {
+        -:  190:                // Check if the cell is alive using next_Evolution
+       18:  191:                int alive_check = 0;
+       18:  192:                _grid[r][c].next_Evolution(alive_check);
+       18:  193:                if (alive_check == 0) continue; // Skip dead cells
+        -:  194:                
+       36:  195:                for (const auto& [dr, dc] : directions) {
+       32:  196:                    int nr = static_cast<int>(r) + dr;
+       32:  197:                    int nc = static_cast<int>(c) + dc;
+        -:  198:                    
+        -:  199:                    // Check bounds
+       32:  200:                    if (nr >= 0 && nr < static_cast<int>(_rows) &&
+       29:  201:                        nc >= 0 && nc < static_cast<int>(_cols)) {
+        -:  202:                        
+        -:  203:                        // Check if the neighbor counts this direction
+       26:  204:                        if (_grid[nr][nc].affectsDirection(-dr, -dc)) {
+       22:  205:                            ++counts[nr][nc];
+        -:  206:                        }
+        -:  207:                    }
+        -:  208:                }
+        -:  209:            }
+        -:  210:        }
+        -:  211:        
+        4:  212:        return counts;
+        2:  213:    }
+------------------
+_ZNK4LifeI10ConwayCellE23compute_neighbor_countsEv:
+        1:  176:    vector<vector<int>> compute_neighbor_counts() const {
+       1*:  177:        assert(!_grid.empty() && !_grid[0].empty());
+        -:  178:        
+        2:  179:        vector<vector<int>> counts(_rows, vector<int>(_cols, 0));
+        -:  180:        
+        -:  181:        // Directions: for north, east, south, west, and diagonals
+        1:  182:        const vector<pair<int, int>> directions = {
+        -:  183:            {-1, 0}, {1, 0}, {0, -1}, {0, 1},    // N, S, W, E
+        -:  184:            {-1, -1}, {-1, 1}, {1, -1}, {1, 1}   // diagonals
+        -:  185:        };
+        -:  186:        
+        -:  187:        // For each cell in the grid
+        4:  188:        for (size_t r = 0; r < _rows; ++r) {
+       12:  189:            for (size_t c = 0; c < _cols; ++c) {
+        -:  190:                // Check if the cell is alive using next_Evolution
+        9:  191:                int alive_check = 0;
+        9:  192:                _grid[r][c].next_Evolution(alive_check);
+        9:  193:                if (alive_check == 0) continue; // Skip dead cells
+        -:  194:                
+       27:  195:                for (const auto& [dr, dc] : directions) {
+       24:  196:                    int nr = static_cast<int>(r) + dr;
+       24:  197:                    int nc = static_cast<int>(c) + dc;
+        -:  198:                    
+        -:  199:                    // Check bounds
+       24:  200:                    if (nr >= 0 && nr < static_cast<int>(_rows) &&
+       21:  201:                        nc >= 0 && nc < static_cast<int>(_cols)) {
+        -:  202:                        
+        -:  203:                        // Check if the neighbor counts this direction
+       18:  204:                        if (_grid[nr][nc].affectsDirection(-dr, -dc)) {
+       18:  205:                            ++counts[nr][nc];
+        -:  206:                        }
+        -:  207:                    }
+        -:  208:                }
+        -:  209:            }
+        -:  210:        }
+        -:  211:        
+        2:  212:        return counts;
+        1:  213:    }
+------------------
+_ZNK4LifeI4CellE23compute_neighbor_countsEv:
+        1:  176:    vector<vector<int>> compute_neighbor_counts() const {
+       1*:  177:        assert(!_grid.empty() && !_grid[0].empty());
+        -:  178:        
+        2:  179:        vector<vector<int>> counts(_rows, vector<int>(_cols, 0));
+        -:  180:        
+        -:  181:        // Directions: for north, east, south, west, and diagonals
+        1:  182:        const vector<pair<int, int>> directions = {
+        -:  183:            {-1, 0}, {1, 0}, {0, -1}, {0, 1},    // N, S, W, E
+        -:  184:            {-1, -1}, {-1, 1}, {1, -1}, {1, 1}   // diagonals
+        -:  185:        };
+        -:  186:        
+        -:  187:        // For each cell in the grid
+        4:  188:        for (size_t r = 0; r < _rows; ++r) {
+       12:  189:            for (size_t c = 0; c < _cols; ++c) {
+        -:  190:                // Check if the cell is alive using next_Evolution
+        9:  191:                int alive_check = 0;
+        9:  192:                _grid[r][c].next_Evolution(alive_check);
+        9:  193:                if (alive_check == 0) continue; // Skip dead cells
+        -:  194:                
+        9:  195:                for (const auto& [dr, dc] : directions) {
+        8:  196:                    int nr = static_cast<int>(r) + dr;
+        8:  197:                    int nc = static_cast<int>(c) + dc;
+        -:  198:                    
+        -:  199:                    // Check bounds
+        8:  200:                    if (nr >= 0 && nr < static_cast<int>(_rows) &&
+        8:  201:                        nc >= 0 && nc < static_cast<int>(_cols)) {
+        -:  202:                        
+        -:  203:                        // Check if the neighbor counts this direction
+        8:  204:                        if (_grid[nr][nc].affectsDirection(-dr, -dc)) {
+        4:  205:                            ++counts[nr][nc];
+        -:  206:                        }
+        -:  207:                    }
+        -:  208:                }
+        -:  209:            }
+        -:  210:        }
+        -:  211:        
+        2:  212:        return counts;
+        1:  213:    }
+------------------
+        -:  214:    
+        -:  215:public:
+        4:  216:    Life(size_t rows, size_t cols) 
+        4:  217:        : _grid(rows, vector<T>(cols)), _rows(rows), _cols(cols) {}
+------------------
+_ZN4LifeI10ConwayCellEC2Emm:
+        2:  216:    Life(size_t rows, size_t cols) 
+        2:  217:        : _grid(rows, vector<T>(cols)), _rows(rows), _cols(cols) {}
+------------------
+_ZN4LifeI4CellEC2Emm:
+        2:  216:    Life(size_t rows, size_t cols) 
+        2:  217:        : _grid(rows, vector<T>(cols)), _rows(rows), _cols(cols) {}
+------------------
+        -:  218:    
+        -:  219:   
+        9:  220:    void replace_cell(int r, int c) {
+       9*:  221:        assert(r >= 0 && r < static_cast<int>(_rows));
+       9*:  222:        assert(c >= 0 && c < static_cast<int>(_cols));
+        -:  223:        if constexpr (!std::is_same_v<T, Cell>) {
+        4:  224:            _grid[r][c] = T(true);
+        -:  225:        } else {
+        5:  226:            _grid[r][c] = Cell(new FredkinCell(true));
+        -:  227:        }        
+        9:  228:    }
+------------------
+_ZN4LifeI10ConwayCellE12replace_cellEii:
+        4:  220:    void replace_cell(int r, int c) {
+       4*:  221:        assert(r >= 0 && r < static_cast<int>(_rows));
+       4*:  222:        assert(c >= 0 && c < static_cast<int>(_cols));
+        -:  223:        if constexpr (!std::is_same_v<T, Cell>) {
+        4:  224:            _grid[r][c] = T(true);
+        -:  225:        } else {
+        -:  226:            _grid[r][c] = Cell(new FredkinCell(true));
+        -:  227:        }        
+        4:  228:    }
+------------------
+_ZN4LifeI4CellE12replace_cellEii:
+        5:  220:    void replace_cell(int r, int c) {
+       5*:  221:        assert(r >= 0 && r < static_cast<int>(_rows));
+       5*:  222:        assert(c >= 0 && c < static_cast<int>(_cols));
+        -:  223:        if constexpr (!std::is_same_v<T, Cell>) {
+        -:  224:            _grid[r][c] = T(true);
+        -:  225:        } else {
+        5:  226:            _grid[r][c] = Cell(new FredkinCell(true));
+        -:  227:        }        
+        5:  228:    }
+------------------
+        -:  229:
+        -:  230:    
+        2:  231:    void eval() {
+        2:  232:        auto neighbors = compute_neighbor_counts();
+        -:  233:        
+        8:  234:        for (size_t r = 0; r < _rows; ++r) {
+        6:  235:            size_t c = 0;
+       24:  236:            for (auto& cell : _grid[r]) {
+       18:  237:                cell.update(neighbors[r][c]);
+       18:  238:                ++c;
+        -:  239:            }
+        -:  240:        }
+        -:  241:        
+        2:  242:        ++_generation;
+        2:  243:    }
+------------------
+_ZN4LifeI10ConwayCellE4evalEv:
+        1:  231:    void eval() {
+        1:  232:        auto neighbors = compute_neighbor_counts();
+        -:  233:        
+        4:  234:        for (size_t r = 0; r < _rows; ++r) {
+        3:  235:            size_t c = 0;
+       12:  236:            for (auto& cell : _grid[r]) {
+        9:  237:                cell.update(neighbors[r][c]);
+        9:  238:                ++c;
+        -:  239:            }
+        -:  240:        }
+        -:  241:        
+        1:  242:        ++_generation;
+        1:  243:    }
+------------------
+_ZN4LifeI4CellE4evalEv:
+        1:  231:    void eval() {
+        1:  232:        auto neighbors = compute_neighbor_counts();
+        -:  233:        
+        4:  234:        for (size_t r = 0; r < _rows; ++r) {
+        3:  235:            size_t c = 0;
+       12:  236:            for (auto& cell : _grid[r]) {
+        9:  237:                cell.update(neighbors[r][c]);
+        9:  238:                ++c;
+        -:  239:            }
+        -:  240:        }
+        -:  241:        
+        1:  242:        ++_generation;
+        1:  243:    }
+------------------
+        -:  244:    
+        -:  245:
+       22:  246:    void print_cell(size_t r, size_t c, ostream& os) const {
+      22*:  247:        assert(r < _rows && c < _cols);
+       22:  248:        _grid[r][c].print(os);
+       22:  249:    }
+        -:  250:    
+        3:  251:    int population() const {
+        3:  252:        int total = 0;
+       10:  253:        for (const auto& row : _grid) {
+       24:  254:            for (const auto& cell : row) {
+       17:  255:                int cell_alive = 0;
+       17:  256:                cell.next_Evolution(cell_alive);
+       17:  257:                total += cell_alive;
+        -:  258:            }
+        -:  259:        }
+        3:  260:        return total;
+        -:  261:    }
+        -:  262:};
+        -:  263:
+        -:  264:#endif // Life_hpp

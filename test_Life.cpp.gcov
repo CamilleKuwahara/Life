@@ -1,0 +1,340 @@
+        -:    0:Source:test_Life.cpp
+        -:    0:Graph:test_Life.gcno
+        -:    0:Data:test_Life.gcda
+        -:    0:Runs:1
+        -:    1:#include "gtest/gtest.h"
+        -:    2:#include "Life.hpp"
+        -:    3:#include <sstream>
+        -:    4:
+        2:    5:TEST(FredkinCellTest, EvolutionRules) {
+        1:    6:    FredkinCell c(true); // alive
+        -:    7:
+       1*:    8:    EXPECT_FALSE(c.evolve(0).alive);
+        1:    9:    c = FredkinCell(true);
+       1*:   10:    EXPECT_FALSE(c.evolve(2).alive);
+        1:   11:    c = FredkinCell(true);
+       1*:   12:    EXPECT_FALSE(c.evolve(4).alive);
+        -:   13:
+        1:   14:    c = FredkinCell(false);
+       1*:   15:    EXPECT_FALSE(c.evolve(0).alive);
+       1*:   16:    EXPECT_FALSE(c.evolve(2).alive);
+       1*:   17:    EXPECT_FALSE(c.evolve(4).alive);
+        -:   18:
+        1:   19:    c = FredkinCell(false);
+       1*:   20:    EXPECT_TRUE(c.evolve(1).alive);
+        1:   21:    c = FredkinCell(false);
+       1*:   22:    EXPECT_TRUE(c.evolve(3).alive);
+        1:   23:}
+------------------
+_ZN35FredkinCellTest_EvolutionRules_Test8TestBodyEv:
+        1:    5:TEST(FredkinCellTest, EvolutionRules) {
+        1:    6:    FredkinCell c(true); // alive
+        -:    7:
+       1*:    8:    EXPECT_FALSE(c.evolve(0).alive);
+        1:    9:    c = FredkinCell(true);
+       1*:   10:    EXPECT_FALSE(c.evolve(2).alive);
+        1:   11:    c = FredkinCell(true);
+       1*:   12:    EXPECT_FALSE(c.evolve(4).alive);
+        -:   13:
+        1:   14:    c = FredkinCell(false);
+       1*:   15:    EXPECT_FALSE(c.evolve(0).alive);
+       1*:   16:    EXPECT_FALSE(c.evolve(2).alive);
+       1*:   17:    EXPECT_FALSE(c.evolve(4).alive);
+        -:   18:
+        1:   19:    c = FredkinCell(false);
+       1*:   20:    EXPECT_TRUE(c.evolve(1).alive);
+        1:   21:    c = FredkinCell(false);
+       1*:   22:    EXPECT_TRUE(c.evolve(3).alive);
+        1:   23:}
+------------------
+_ZN35FredkinCellTest_EvolutionRules_TestC2Ev:
+        1:    5:TEST(FredkinCellTest, EvolutionRules) {
+------------------
+        -:   24:
+        2:   25:TEST(CellTest, FredkinToConwayMutation) {
+        1:   26:    Cell cell(true); // FredkinCell initially
+        1:   27:    cell.update(1);  // alive +1 age
+        1:   28:    cell.update(1);  // age becomes 2 → mutate to ConwayCell
+        -:   29:
+        1:   30:    int is_alive = 0;
+        1:   31:    cell.next_Evolution(is_alive);
+       1*:   32:    EXPECT_EQ(is_alive, 1); // Should be alive after mutation
+        1:   33:}
+------------------
+_ZN37CellTest_FredkinToConwayMutation_Test8TestBodyEv:
+        1:   25:TEST(CellTest, FredkinToConwayMutation) {
+        1:   26:    Cell cell(true); // FredkinCell initially
+        1:   27:    cell.update(1);  // alive +1 age
+        1:   28:    cell.update(1);  // age becomes 2 → mutate to ConwayCell
+        -:   29:
+        1:   30:    int is_alive = 0;
+        1:   31:    cell.next_Evolution(is_alive);
+       1*:   32:    EXPECT_EQ(is_alive, 1); // Should be alive after mutation
+        1:   33:}
+------------------
+_ZN37CellTest_FredkinToConwayMutation_TestC2Ev:
+        1:   25:TEST(CellTest, FredkinToConwayMutation) {
+------------------
+        -:   34:
+        2:   35:TEST(LifeTest, StepAndPopulation) {
+        1:   36:    Life<Cell> sim(3, 3);
+        1:   37:    sim.replace_cell(1, 1); 
+        1:   38:    sim.eval();        
+       1*:   39:    EXPECT_EQ(sim.population(), 4); // Simple test: center spawns neighbors
+        1:   40:}
+------------------
+_ZN31LifeTest_StepAndPopulation_Test8TestBodyEv:
+        1:   35:TEST(LifeTest, StepAndPopulation) {
+        1:   36:    Life<Cell> sim(3, 3);
+        1:   37:    sim.replace_cell(1, 1); 
+        1:   38:    sim.eval();        
+       1*:   39:    EXPECT_EQ(sim.population(), 4); // Simple test: center spawns neighbors
+        1:   40:}
+------------------
+_ZN31LifeTest_StepAndPopulation_TestC2Ev:
+        1:   35:TEST(LifeTest, StepAndPopulation) {
+------------------
+        -:   41:
+        2:   42:TEST(LifeTest, DisplayOutput) {
+        1:   43:    Life<ConwayCell> sim(2, 2);
+        1:   44:    sim.replace_cell(0, 0);
+        -:   45:
+        1:   46:    std::ostringstream out;
+        3:   47:    for (size_t r = 0; r < 2; ++r) {
+        6:   48:        for (size_t c = 0; c < 2; ++c) {
+        4:   49:            sim.print_cell(r, c, out);
+        -:   50:        }
+        2:   51:        out << '\n';
+        -:   52:    }
+        -:   53:
+        1:   54:    std::string expected = "*.\n..\n";
+       2*:   55:    EXPECT_EQ(out.str(), expected);
+        1:   56:}
+------------------
+_ZN27LifeTest_DisplayOutput_Test8TestBodyEv:
+        1:   42:TEST(LifeTest, DisplayOutput) {
+        1:   43:    Life<ConwayCell> sim(2, 2);
+        1:   44:    sim.replace_cell(0, 0);
+        -:   45:
+        1:   46:    std::ostringstream out;
+        3:   47:    for (size_t r = 0; r < 2; ++r) {
+        6:   48:        for (size_t c = 0; c < 2; ++c) {
+        4:   49:            sim.print_cell(r, c, out);
+        -:   50:        }
+        2:   51:        out << '\n';
+        -:   52:    }
+        -:   53:
+        1:   54:    std::string expected = "*.\n..\n";
+       2*:   55:    EXPECT_EQ(out.str(), expected);
+        1:   56:}
+------------------
+_ZN27LifeTest_DisplayOutput_TestC2Ev:
+        1:   42:TEST(LifeTest, DisplayOutput) {
+------------------
+        -:   57:
+        2:   58:TEST(CloneTest, FredkinClone) {
+        1:   59:    FredkinCell c(true, 5);
+       1*:   60:    FredkinCell* clone = dynamic_cast<FredkinCell*>(c.clone());
+       1*:   61:    ASSERT_NE(clone, nullptr);
+       1*:   62:    EXPECT_NE(clone, &c);
+        1:   63:    delete clone;
+        1:   64:}
+------------------
+_ZN27CloneTest_FredkinClone_Test8TestBodyEv:
+        1:   58:TEST(CloneTest, FredkinClone) {
+        1:   59:    FredkinCell c(true, 5);
+       1*:   60:    FredkinCell* clone = dynamic_cast<FredkinCell*>(c.clone());
+       1*:   61:    ASSERT_NE(clone, nullptr);
+       1*:   62:    EXPECT_NE(clone, &c);
+        1:   63:    delete clone;
+        1:   64:}
+------------------
+_ZN27CloneTest_FredkinClone_TestC2Ev:
+        1:   58:TEST(CloneTest, FredkinClone) {
+------------------
+        -:   65:
+        2:   66:TEST(CloneTest, ConwayClone) {
+        1:   67:    ConwayCell c(true);
+       1*:   68:    ConwayCell* clone = dynamic_cast<ConwayCell*>(c.clone());
+       1*:   69:    ASSERT_NE(clone, nullptr);
+       1*:   70:    EXPECT_NE(clone, &c);
+        1:   71:    delete clone;
+        1:   72:}
+------------------
+_ZN26CloneTest_ConwayClone_Test8TestBodyEv:
+        1:   66:TEST(CloneTest, ConwayClone) {
+        1:   67:    ConwayCell c(true);
+       1*:   68:    ConwayCell* clone = dynamic_cast<ConwayCell*>(c.clone());
+       1*:   69:    ASSERT_NE(clone, nullptr);
+       1*:   70:    EXPECT_NE(clone, &c);
+        1:   71:    delete clone;
+        1:   72:}
+------------------
+_ZN26CloneTest_ConwayClone_TestC2Ev:
+        1:   66:TEST(CloneTest, ConwayClone) {
+------------------
+        -:   73:
+        2:   74:TEST(FredkinToConwayTest, ConvertsOnAge2) {
+        1:   75:    Cell cell(true); // FredkinCell
+        1:   76:    cell.update(1);  // age = 1
+        1:   77:    cell.update(1);  // age = 2 -> should mutate
+        -:   78:
+        1:   79:    int is_alive = 0;
+        1:   80:    cell.next_Evolution(is_alive);
+       1*:   81:    EXPECT_EQ(is_alive, 1);
+        1:   82:}
+------------------
+_ZN39FredkinToConwayTest_ConvertsOnAge2_Test8TestBodyEv:
+        1:   74:TEST(FredkinToConwayTest, ConvertsOnAge2) {
+        1:   75:    Cell cell(true); // FredkinCell
+        1:   76:    cell.update(1);  // age = 1
+        1:   77:    cell.update(1);  // age = 2 -> should mutate
+        -:   78:
+        1:   79:    int is_alive = 0;
+        1:   80:    cell.next_Evolution(is_alive);
+       1*:   81:    EXPECT_EQ(is_alive, 1);
+        1:   82:}
+------------------
+_ZN39FredkinToConwayTest_ConvertsOnAge2_TestC2Ev:
+        1:   74:TEST(FredkinToConwayTest, ConvertsOnAge2) {
+------------------
+        -:   83:
+        2:   84:TEST(FredkinSymbolTest, ReturnsPlusForOldAge) {
+        1:   85:    FredkinCell c(true, 10);
+        1:   86:    std::ostringstream os;
+        1:   87:    c.print(os);
+       2*:   88:    EXPECT_EQ(os.str(), "+");
+        -:   89:
+        2:   90:    FredkinCell c2(true, 15);
+        2:   91:    std::ostringstream os2;
+        1:   92:    c2.print(os2);
+       2*:   93:    EXPECT_EQ(os2.str(), "+");
+        1:   94:}
+------------------
+_ZN43FredkinSymbolTest_ReturnsPlusForOldAge_Test8TestBodyEv:
+        1:   84:TEST(FredkinSymbolTest, ReturnsPlusForOldAge) {
+        1:   85:    FredkinCell c(true, 10);
+        1:   86:    std::ostringstream os;
+        1:   87:    c.print(os);
+       2*:   88:    EXPECT_EQ(os.str(), "+");
+        -:   89:
+        2:   90:    FredkinCell c2(true, 15);
+        2:   91:    std::ostringstream os2;
+        1:   92:    c2.print(os2);
+       2*:   93:    EXPECT_EQ(os2.str(), "+");
+        1:   94:}
+------------------
+_ZN43FredkinSymbolTest_ReturnsPlusForOldAge_TestC2Ev:
+        1:   84:TEST(FredkinSymbolTest, ReturnsPlusForOldAge) {
+------------------
+        -:   95:
+        2:   96:TEST(CellAssignment, HandlesSelfAssignment) {
+        1:   97:    Cell c(true);
+        1:   98:    c = c; // Self-assignment
+        1:   99:    int alive = 0;
+        1:  100:    c.next_Evolution(alive);
+       1*:  101:    EXPECT_EQ(alive, 1);
+        1:  102:}
+------------------
+_ZN41CellAssignment_HandlesSelfAssignment_Test8TestBodyEv:
+        1:   96:TEST(CellAssignment, HandlesSelfAssignment) {
+        1:   97:    Cell c(true);
+        1:   98:    c = c; // Self-assignment
+        1:   99:    int alive = 0;
+        1:  100:    c.next_Evolution(alive);
+       1*:  101:    EXPECT_EQ(alive, 1);
+        1:  102:}
+------------------
+_ZN41CellAssignment_HandlesSelfAssignment_TestC2Ev:
+        1:   96:TEST(CellAssignment, HandlesSelfAssignment) {
+------------------
+        -:  103:
+        2:  104:TEST(LifeConwayTest, StepAndDisplay) {
+        1:  105:    Life<ConwayCell> sim(3, 3);
+        1:  106:    sim.replace_cell(1, 1);
+        1:  107:    sim.replace_cell(1, 2);
+        1:  108:    sim.replace_cell(2, 1);
+        -:  109:
+        1:  110:    std::ostringstream out_before;
+        4:  111:    for (size_t r = 0; r < 3; ++r) {
+       12:  112:        for (size_t c = 0; c < 3; ++c) {
+        9:  113:            sim.print_cell(r, c, out_before);
+        -:  114:        }
+        3:  115:        out_before << '\n';
+        -:  116:    }
+        -:  117:
+        1:  118:    sim.eval();
+        -:  119:
+        1:  120:    std::ostringstream out_after;
+        4:  121:    for (size_t r = 0; r < 3; ++r) {
+       12:  122:        for (size_t c = 0; c < 3; ++c) {
+        9:  123:            sim.print_cell(r, c, out_after);
+        -:  124:        }
+        3:  125:        out_after << '\n';
+        -:  126:    }
+        -:  127:
+       1*:  128:    EXPECT_FALSE(out_before.str().empty());
+       1*:  129:    EXPECT_FALSE(out_after.str().empty());
+        1:  130:}
+------------------
+_ZN34LifeConwayTest_StepAndDisplay_Test8TestBodyEv:
+        1:  104:TEST(LifeConwayTest, StepAndDisplay) {
+        1:  105:    Life<ConwayCell> sim(3, 3);
+        1:  106:    sim.replace_cell(1, 1);
+        1:  107:    sim.replace_cell(1, 2);
+        1:  108:    sim.replace_cell(2, 1);
+        -:  109:
+        1:  110:    std::ostringstream out_before;
+        4:  111:    for (size_t r = 0; r < 3; ++r) {
+       12:  112:        for (size_t c = 0; c < 3; ++c) {
+        9:  113:            sim.print_cell(r, c, out_before);
+        -:  114:        }
+        3:  115:        out_before << '\n';
+        -:  116:    }
+        -:  117:
+        1:  118:    sim.eval();
+        -:  119:
+        1:  120:    std::ostringstream out_after;
+        4:  121:    for (size_t r = 0; r < 3; ++r) {
+       12:  122:        for (size_t c = 0; c < 3; ++c) {
+        9:  123:            sim.print_cell(r, c, out_after);
+        -:  124:        }
+        3:  125:        out_after << '\n';
+        -:  126:    }
+        -:  127:
+       1*:  128:    EXPECT_FALSE(out_before.str().empty());
+       1*:  129:    EXPECT_FALSE(out_after.str().empty());
+        1:  130:}
+------------------
+_ZN34LifeConwayTest_StepAndDisplay_TestC2Ev:
+        1:  104:TEST(LifeConwayTest, StepAndDisplay) {
+------------------
+        -:  131:
+        2:  132:TEST(LifePopulationTest, EmptyAndFullBoard) {
+        1:  133:    Life<Cell> sim(2, 2);
+       1*:  134:    EXPECT_EQ(sim.population(), 0);
+        -:  135:
+        1:  136:    sim.replace_cell(0, 0);
+        1:  137:    sim.replace_cell(0, 1);
+        1:  138:    sim.replace_cell(1, 0);
+        1:  139:    sim.replace_cell(1, 1);
+        -:  140:
+       1*:  141:    EXPECT_EQ(sim.population(), 4);
+        1:  142:}
+------------------
+_ZN41LifePopulationTest_EmptyAndFullBoard_Test8TestBodyEv:
+        1:  132:TEST(LifePopulationTest, EmptyAndFullBoard) {
+        1:  133:    Life<Cell> sim(2, 2);
+       1*:  134:    EXPECT_EQ(sim.population(), 0);
+        -:  135:
+        1:  136:    sim.replace_cell(0, 0);
+        1:  137:    sim.replace_cell(0, 1);
+        1:  138:    sim.replace_cell(1, 0);
+        1:  139:    sim.replace_cell(1, 1);
+        -:  140:
+       1*:  141:    EXPECT_EQ(sim.population(), 4);
+        1:  142:}
+------------------
+_ZN41LifePopulationTest_EmptyAndFullBoard_TestC2Ev:
+        1:  132:TEST(LifePopulationTest, EmptyAndFullBoard) {
+------------------
