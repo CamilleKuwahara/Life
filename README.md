@@ -14,6 +14,6 @@
 
 * Estimated completion time: 15
 
-* Actual completion time: (actual time in hours, int or float)
+* Actual completion time: 20
 
-* Comments: (any additional comments you have)
+* Comments: Used Generative AI tool for help
