@@ -1,81 +1,57 @@
-# cpp/Variables.mk
-
 .DEFAULT_GOAL := all
-SHELL         := bash
+SHELL		  := bash
 
-ifeq ($(shell uname -p), arm) # Apple M processor
-    ASTYLE        := astyle
-    BOOST         := /usr/local/include/boost
-    CHECKTESTDATA := checktestdata
-    CPPCHECK      := cppcheck
-    CXX           := clang++
-    DOCKER        := gcc-apple
-    DOXYGEN       := doxygen
-    GCOV          := llvm-cov gcov
-    GTESTINC      := /usr/local/include/
-    GTESTLIB      := /usr/local/lib/
-    VALGRIND      :=
-    CXXFLAGS      := --coverage -fsanitize=undefined -g -std=c++20 -Wall -Wextra -Wpedantic
-    LDFLAGS       := -lgmp -lgmpxx -lgtest -lgtest_main
-else ifeq ($(shell uname -p), i386) # Apple Intel processor
-    ASTYLE        := astyle
-    BOOST         := /usr/local/include/boost
-    CHECKTESTDATA := checktestdata
-    CPPCHECK      := cppcheck
-    CXX           := clang++
-    DOCKER        := gcc-intel
-    DOXYGEN       := doxygen
-    GCOV          := llvm-cov gcov
-    GTESTINC      := /usr/local/include/
-    GTESTLIB      := /usr/local/lib/
-    VALGRIND      :=
-    CXXFLAGS      := --coverage -fsanitize=undefined -g -std=c++20 -Wall -Wextra -Wpedantic
-    LDFLAGS       := -lgmp -lgmpxx -lgtest -lgtest_main
-else ifeq ($(shell uname -p), x86_64) # CS machines
-    ASTYLE        := astyle
-    BOOST         := /lusr/opt/boost-1.82/include/boost
-    CHECKTESTDATA := checktestdata
-    CPPCHECK      := cppcheck
-    CXX           := g++-14
-    DOCKER        :=
-    DOXYGEN       := doxygen
-    GCOV          := gcov-14
-    GTESTINC      := /lusr/opt/googletest-1.15.2/include/gtest
-    GTESTLIB      := /lusr/opt/googletest-1.15.2/lib
-    VALGRIND      := valgrind
-    CXXFLAGS      := --coverage -fsanitize=undefined -g -std=c++20 -I$(GTESTINC) -L$(GTESTLIB) -Wall -Wextra -Wpedantic
-    LDFLAGS       := -lgtest -lgtest_main -pthread
-else ifeq ($(shell uname -p), unknown) # Docker
-    ASTYLE        := astyle
-    BOOST         := /usr/include/boost
-    CHECKTESTDATA := checktestdata
-    CPPCHECK      := cppcheck
-    CXX           := g++
-    DOCKER        := gcc-intel
-    DOXYGEN       := doxygen
-    GCOV          := gcov
-    GTESTINC      := /usr/include/gtest
-    GTESTLIB      := /usr/lib
-    VALGRIND      := valgrind
-    CXXFLAGS      := --coverage -fsanitize=undefined -g -std=c++20 -Wall -Wextra -Wpedantic
-    LDFLAGS       := -lgtest -lgtest_main -pthread
+ifeq ($(shell uname -s), Life)
+	ASTYLE		  := astyle
+	BOOST		  := /usr/local/include/boost
+	CHECKTESTDATA := checktestdata
+	CPPCHECK	  := cppcheck
+	CXX			  := clang++
+	CXXFLAGS	  := --coverage -g -std=c++20 -Wall -Wextra -Wpedantic
+	DOXYGEN		  := doxygen
+	GCOV		  := llvm-cov gcov
+	GTEST		  := /usr/local/include/gtest
+	LDFLAGS		  := -lgtest -lgtest_main
+	LIB			  := $(LIBRARY_PATH)
+	VALGRIND	  :=
+else ifeq ($(shell uname -p), x86_64)
+	ASTYLE		  := astyle
+	BOOST		  := /lusr/opt/boost-1.82/include/boost
+	CHECKTESTDATA := checktestdata
+	CPPCHECK	  := cppcheck
+	CXX			  := g++-11
+	CXXFLAGS	  := --coverage -g -std=c++20 -Wall -Wextra -Wpedantic
+	DOXYGEN		  := doxygen
+	GCOV		  := gcov-11
+	GTEST		  := /usr/include/gtest
+	LDFLAGS		  := -L/usr/local/opt/boost-1.77/lib/ -lgtest -lgtest_main -pthread
+	LIB			  := /usr/lib/x86_64-linux-gnu
+	VALGRIND	  := valgrind-3.17
+else
+	ASTYLE		  := astyle
+	BOOST		  := /usr/include/boost
+	CHECKTESTDATA := checktestdata
+	CPPCHECK	  := cppcheck
+	CXX			  := g++
+	CXXFLAGS	  := --coverage -g -std=c++20 -Wall -Wextra -Wpedantic
+	DOXYGEN		  := doxygen
+	GCOV		  := gcov
+	GTEST		  := /usr/include/gtest
+	LDFLAGS		  := -lgtest -lgtest_main -pthread
+	LIB			  := /usr/lib
+	VALGRIND	  := valgrind
 endif
 
-# cpp/files/Git-CS371p.mk
-
 # run/test files, compile with make all
-FILES :=               \
-    hr_Life         \
-    run_LifeCell    \
-	run_LifeConway  \
+FILES :=			   \
+	run_LifeCell  \
+	run_LifeConway \
 	run_LifeFredkin \
-    test_Life
-
-# cpp/rules/Git-CS371p.mk
+	test_Life
 
 # run docker
 docker:
-	docker run --rm -it -v $(PWD):/usr/gcc -w /usr/gcc gpdowning/$(DOCKER)
+	docker run --rm -it -v $(PWD):/usr/gcc -w /usr/gcc gpdowning/gcc
 
 # get git config
 config:
@@ -120,9 +96,17 @@ push:
 	git status
 
 # compile run harness
-run_Life: Life.hpp run_Life.cpp
-	-$(CPPCHECK) run_Life.cpp
-	$(CXX) $(CXXFLAGS) run_Life.cpp -o run_Life
+run_LifeCell: Life.hpp run_LifeCell.cpp
+	-$(CPPCHECK) run_LifeCell.cpp
+	$(CXX) $(CXXFLAGS) run_LifeCell.cpp -o run_LifeCell
+
+run_LifeConway: Life.hpp run_LifeConway.cpp
+	-$(CPPCHECK) run_LifeConway.cpp
+	$(CXX) $(CXXFLAGS) run_LifeConway.cpp -o run_LifeConway
+
+run_LifeFredkin: Life.hpp run_LifeFredkin.cpp
+	-$(CPPCHECK) run_LifeFredkin.cpp
+	$(CXX) $(CXXFLAGS) run_LifeFredkin.cpp -o run_LifeFredkin
 
 # compile test harness
 test_Life: Life.hpp test_Life.cpp
@@ -142,8 +126,8 @@ else
 endif
 
 # clone the Life test repo
-../cs371p-Life-tests:
-	git clone https://gitlab.com/gpdowning/cs371p-Life-tests.git ../cs371p-Life-tests
+../cs371p-life-tests:
+	git clone https://gitlab.com/gpdowning/cs371p-life-tests.git ../cs371p-life-tests
 
 # generate a random input file
 ctd-generate:
@@ -151,31 +135,59 @@ ctd-generate:
 
 # execute the run harness against your test files in the Life test repo and diff with the expected output
 # change gpdowning to your GitLab-ID
-run: run_Life ../cs371p-Life-tests
-	-$(CHECKTESTDATA) Life.ctd.txt ../cs371p-Life-tests/gpdowning-Life.in.txt
-	./run_Life < ../cs371p-Life-tests/gpdowning-Life.in.txt > Life.tmp.txt
-	diff Life.tmp.txt ../cs371p-Life-tests/gpdowning-Life.out.txt
+run: run_LifeCell run_LifeConway run_LifeFredkin ../cs371p-life-tests
+	-$(CHECKTESTDATA) Life.ctd.txt ../cs371p-life-tests/gpdowning-LifeCell.in.txt
+	./run_LifeCell < ../cs371p-life-tests/gpdowning-LifeCell.in.txt > Cell.tmp.txt
+	diff ../cs371p-life-tests/gpdowning-LifeCell.out.txt Cell.tmp.txt
+	-$(CHECKTESTDATA) Life.ctd.txt ../cs371p-life-tests/gpdowning-LifeConway.in.txt
+	./run_LifeConway < ../cs371p-life-tests/gpdowning-LifeConway.in.txt > Conway.tmp.txt
+	diff ../cs371p-life-tests/gpdowning-LifeConway.out.txt Conway.tmp.txt
+	-$(CHECKTESTDATA) Life.ctd.txt ../cs371p-life-tests/gpdowning-LifeFredkin.in.txt
+	./run_LifeFredkin < ../cs371p-life-tests/gpdowning-LifeFredkin.in.txt > Fredkin.tmp.txt
+	diff ../cs371p-life-tests/gpdowning-LifeFredkin.out.txt Fredkin.tmp.txt
+
 
 # execute the run harness against all of the test files in the Life test repo and diff with the expected output
-run-all: run_Life ../cs371p-Life-tests
-	-@time for v in `ls ../cs371p-Life-tests/*.in.txt`;    \
-    do                                                              \
-        echo $(CHECKTESTDATA) Life.ctd.txt $${v};          \
-             $(CHECKTESTDATA) Life.ctd.txt $${v};          \
-        echo ./run_Life \< $${v} \> Life.tmp.txt; \
-             ./run_Life  < $${v}  > Life.tmp.txt; \
-        echo diff Life.tmp.txt $${v/.in/.out};             \
-             diff Life.tmp.txt $${v/.in/.out};             \
-    done
+run-all: run_LifeCell run_LifeConway run_LifeFredkin ../cs371p-life-tests
+	-@for v in `ls ../cs371p-life-tests/*LifeCell.in.txt`;		   \
+	do																\
+		echo $(CHECKTESTDATA) Life.ctd.txt $${v};		   \
+			 $(CHECKTESTDATA) Life.ctd.txt $${v};		   \
+		echo ./run_LifeCell \< $${v} \> Cell.tmp.txt; \
+			 ./run_LifeCell  < $${v}  > Cell.tmp.txt; \
+		echo diff Cell.tmp.txt $${v/.in/.out};			   \
+			 diff Cell.tmp.txt $${v/.in/.out};			   \
+	done
+	-@for v in `ls ../cs371p-life-tests/*LifeConway.in.txt`; \
+	do                                                       \
+		echo $(CHECKTESTDATA) Life.ctd.txt $${v};           \
+			$(CHECKTESTDATA) Life.ctd.txt $${v};            \
+		echo ./run_LifeConway \< $${v} \> Conway.tmp.txt; \
+			./run_LifeConway < $${v} > Conway.tmp.txt; \
+		echo diff Conway.tmp.txt $${v/.in/.out};            \
+			diff Conway.tmp.txt $${v/.in/.out};         \
+	done            
+	-@for v in `ls ../cs371p-life-tests/*LifeFredkin.in.txt`;       \
+	do      \
+		echo $(CHECKTESTDATA) Life.ctd.txt $${v};       \
+			$(CHECKTESTDATA) Life.ctd.txt $${v};        \
+		echo ./run_LifeCell \< $${v} \> Fredkin.tmp.txt;        \
+			./run_LifeFredkin < $${v} > Fredkin.tmp.txt;        \
+		echo diff Fredkin.tmp.txt $${v/.in/.out};       \
+			diff Fredkin.tmp.txt $${v/.in/.out};        \
+	done
+
 
 # auto format the code
 format:
 	$(ASTYLE) Life.hpp
-	$(ASTYLE) run_Life.cpp
+	$(ASTYLE) run_LifeCell.cpp
+	$(ASTYLE) run_LifeConway.cpp
+	$(ASTYLE) run_LifeFredkin.cpp
 	$(ASTYLE) test_Life.cpp
 
 # you must edit Doxyfile and
-# set EXTRACT_ALL     to YES
+# set EXTRACT_ALL	  to YES
 # set EXTRACT_PRIVATE to YES
 # set EXTRACT_STATIC  to YES
 # create Doxfile
@@ -208,8 +220,6 @@ scrub:
 	rm -rf latex
 
 # output versions of all tools
-# cpp/Versions.mk
-
 versions:
 	uname -p
 
@@ -245,8 +255,6 @@ versions:
 	which $(CXX)
 	@echo
 	$(CXX) --version | head -n 1
-	@echo
-	$(CXX) -std=c++2b -xc++ -E -dM /dev/null | grep __cplusplus
 
 	@echo
 	which $(GCOV)
@@ -279,8 +287,9 @@ endif
 	grep "#define BOOST_LIB_VERSION " $(BOOST)/version.hpp
 
 	@echo
-	ls -dl $(GTESTINC)/gtest.h
-	@echo
-	ls -dl $(GTESTLIB)/libgtest*.a
+	ls -al $(GTEST)/gtest.h
 	@echo
 	pkg-config --modversion gtest
+	@echo
+	ls -al $(LIB)/libgtest*.a
+

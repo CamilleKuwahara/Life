@@ -2,17 +2,18 @@
 #define Life_hpp
 
 #include <vector>
-#include <cstddef>
 #include <iostream>
+#include <cassert>
+#include <type_traits>
 
 using namespace std;
-
 
 enum class CellKind { 
     Fredkin,
     Conway
 };
 
+// Forward declaration of Generation struct
 struct Generation {
     CellKind kind_of_cell;
     bool alive;
@@ -22,34 +23,31 @@ struct Generation {
         : kind_of_cell(k), alive(a), age(age) {}
 };
 
-// AbstractCell base class
+// Abstract cell base class
 class AbstractCell {
 protected:
-    bool _state; // boolean whether the cell is alive
-
+    bool _state;
+    
 public:
-    AbstractCell(bool state) : _state(state) {}
+    AbstractCell(bool state = false) : _state(state) {}
     virtual ~AbstractCell() = default;
-    //Clone method for copying
+    
     virtual AbstractCell* clone() const = 0;
-    //Cell evolves between generations
     virtual Generation evolve(int neighbors) = 0;
-    // Returns the current state of the cell
-    virtual bool state() const = 0;
-    //check if cell is alive
+    virtual void print(ostream& os) const = 0;
     virtual bool affectsDirection(int dr, int dc) const = 0;
-
-    bool aliveState() const { return _state; } 
+    virtual void next_Evolution(int& count) const = 0;
 };
 
-// ConwayCell
+// Conway Cell implementation
 class ConwayCell : public AbstractCell {
 public:
     ConwayCell(bool state = false) : AbstractCell(state) {}
-    ConwayCell(bool state) : AbstractCell(state) {}
-    //destructor
-    ~ConwayCell() = default;
-    //updates the state
+    
+    AbstractCell* clone() const override {
+        return new ConwayCell(*this);
+    }
+    
     Generation evolve(int neighbors) override {
         if (_state) {
             _state = (neighbors == 2 || neighbors == 3);
@@ -58,163 +56,209 @@ public:
         }
         return Generation(CellKind::Conway, _state);
     }
-
-    AbstractCell* clone() const override {
-        return new ConwayCell(_state);
+    
+    void update(int neighbors) { 
+        evolve(neighbors); 
     }
-
+    
+    void print(ostream& os) const override {
+        os << (_state ? '*' : '.');
+    }
+    
     bool affectsDirection(int, int) const override {
-        return true;
+        return true; // Conway cells affect all 8 neighbors
     }
-
-    bool alive() const {
-        return _state;
+    
+    void next_Evolution(int& count) const override {
+        if (_state) ++count;
     }
-
 };
 
-// FredkinCell
+// Fredkin Cell implementation
 class FredkinCell : public AbstractCell {
 private:
-    size_t _age; //Tracks the number of evolutiosn while alive
-
+    size_t _age = 0;
+    
 public:
     FredkinCell(bool state = false, size_t age = 0)
-    : AbstractCell(state), _age(age) {}
-
-        
-    ~FredkinCell() = default;
-    //increments age if alive
-    Generation evolve(int neighbors) override {
-        bool was_alive = _state;
-
-        if (_state && (neighbors == 0 || neighbors == 2 || neighbors == 4)) {
-            _state = false;
-        } else if (!_state && (neighbors == 1 || neighbors == 3)) {
-            _state = true;
-        }
-
-        if (was_alive && _state) {
-            ++_age;
-        }
-
-        return Generation(CellKind::Fredkin, _state, static_cast<int>(_age));
-    }
-
-
+        : AbstractCell(state), _age(age) {}
+    
     AbstractCell* clone() const override {
         return new FredkinCell(*this);
     }
-    bool affectsDirection(int dr, int dc) const override {
-        return (dr * dc) == 0;
+    
+    Generation evolve(int neighbors) override {
+        bool was_alive = _state;
+        
+        if (_state) {
+            _state = !(neighbors == 0 || neighbors == 2 || neighbors == 4);
+        } else {
+            _state = (neighbors == 1 || neighbors == 3);
+        }
+        
+        // Increment age if the cell stayed alive
+        _age += (was_alive && _state) ? 1 : 0;
+        
+        return Generation(CellKind::Fredkin, _state, static_cast<int>(_age));
     }
-
+    
+    void update(int neighbors) { 
+        evolve(neighbors); 
+    }
+    
+    void print(ostream& os) const override {
+        if (_state) {
+            if (_age >= 10) os << '+';
+            else os << static_cast<char>('0' + _age);
+        } else {
+            os << '-';
+        }
+    }
+    
+    bool affectsDirection(int dr, int dc) const override {
+        return (dr * dc) == 0; // Fredkin cells affect only cardinal directions
+    }
+    
+    void next_Evolution(int& count) const override {
+        if (_state) ++count;
+    }
 };
 
-// Cell wrapper to manage dynamic AbstractCe instances
+// Cell wrapper class
 class Cell {
 private:
-    AbstractCell* _pointer;
-
+    AbstractCell* _cell;
+    
 public:
-     Cell() : _cell(new FredkinCell()) {}
-    //deep copy
-    Cell(bool state) : _cell(new FredkinCell(state)) {}
-    Cell(AbstractCell* cell) : _pointer(cell->clone()) {}
-    //copy constructor for uses clone
-    Cell(const Cell& other) : _pointer(other._pointer->clone()) {}
-    //move constructor
-    Cell(Cell&& other) noexcept : _pointer(other._pointer) { other._pointer = nullptr; }
-
+    Cell() : _cell(new FredkinCell()) {}
+    Cell(bool s) : _cell(new FredkinCell(s)) {}
+    Cell(AbstractCell* ptr) : _cell(ptr) {}
+    Cell(const Cell& other) : _cell(other._cell->clone()) {}
+    ~Cell() { delete _cell; }
+    
     Cell& operator=(const Cell& other) {
         if (this != &other) {
-            AbstractCell* temp = other._cell->clone();
+            AbstractCell* new_cell = other._cell->clone();
             delete _cell;
-            _cell = temp;
+            _cell = new_cell;
         }
         return *this;
     }
-    ~Cell() {
-        delete _pointer;
+    
+    void update(int neighbor_count) {
+        assert(_cell != nullptr);
+        Generation state = _cell->evolve(neighbor_count);
+        
+        // Handle Cell-of-Life evolution (Fredkin -> Conway after age 2)
+        if (state.kind_of_cell == CellKind::Fredkin && 
+            state.alive && 
+            state.age == 2) {
+            delete _cell;
+            _cell = new ConwayCell(true);
+        }
     }
-
-    bool alive() const { return _cell->aliveState(); } 
-
-  
+    
+    // Interface methods
+    void print(ostream& os) const { _cell->print(os); }
+    bool affectsDirection(int dr, int dc) const { return _cell->affectsDirection(dr, dc); }
+    void next_Evolution(int& count) const { _cell->next_Evolution(count); }
 };
 
-// Life class template
-template<typename T>
-    class Life {
-    private:
-        vector<vector<T>> _grid;
+// Life template class
+template <typename T>
+class Life {
+private:
+    vector<vector<T>> _grid;
+    size_t _rows;
+    size_t _cols;
+    int _generation = 0;
     
-        vector<vector<int>> compute_neighbors() const {
-            assert(!_grid.empty() && !_grid[0].empty());
-            size_t rows = _grid.size();
-            size_t cols = _grid[0].size();
-            vector<vector<int>> counts(rows, vector<int>(cols, 0));
-    
-            const vector<pair<int, int>> directions = {
-                {-1,0}, {1,0}, {0,-1}, {0,1},
-                {-1,-1}, {-1,1}, {1,-1}, {1,1}
-            };
-    
-            for (size_t r = 0; r < rows; ++r) {
-                for (size_t c = 0; c < cols; ++c) {
-                    if (!_grid[r][c].alive()) continue;
-    
-                    for (const auto& [dr, dc] : directions) {
-                        int nr = static_cast<int>(r) + dr;
-                        int nc = static_cast<int>(c) + dc;
-    
-                        if (nr >= 0 && nr < static_cast<int>(rows) && nc >= 0 && nc < static_cast<int>(cols)) {
-                            if (_grid[nr][nc].affects(-dr, -dc)) {
-                                ++counts[nr][nc];
-                            }
+    vector<vector<int>> compute_neighbor_counts() const {
+        assert(!_grid.empty() && !_grid[0].empty());
+        
+        vector<vector<int>> counts(_rows, vector<int>(_cols, 0));
+        
+        // Directions: for north, east, south, west, and diagonals
+        const vector<pair<int, int>> directions = {
+            {-1, 0}, {1, 0}, {0, -1}, {0, 1},    // N, S, W, E
+            {-1, -1}, {-1, 1}, {1, -1}, {1, 1}   // diagonals
+        };
+        
+        // For each cell in the grid
+        for (size_t r = 0; r < _rows; ++r) {
+            for (size_t c = 0; c < _cols; ++c) {
+                // Check if the cell is alive using next_Evolution
+                int alive_check = 0;
+                _grid[r][c].next_Evolution(alive_check);
+                if (alive_check == 0) continue; // Skip dead cells
+                
+                for (const auto& [dr, dc] : directions) {
+                    int nr = static_cast<int>(r) + dr;
+                    int nc = static_cast<int>(c) + dc;
+                    
+                    // Check bounds
+                    if (nr >= 0 && nr < static_cast<int>(_rows) &&
+                        nc >= 0 && nc < static_cast<int>(_cols)) {
+                        
+                        // Check if the neighbor counts this direction
+                        if (_grid[nr][nc].affectsDirection(-dr, -dc)) {
+                            ++counts[nr][nc];
                         }
                     }
                 }
             }
-            return counts;
         }
+        
+        return counts;
+    }
     
-    public:
-        Life(size_t rows, size_t cols) : _grid(rows, vector<T>(cols)) {}
+public:
+    Life(size_t rows, size_t cols) 
+        : _grid(rows, vector<T>(cols)), _rows(rows), _cols(cols) {}
     
-        void eval() {
-            auto neighbors = compute_neighbors();
-            for (size_t r = 0; r < _grid.size(); ++r) {
-                for (size_t c = 0; c < _grid[r].size(); ++c) {
-                    _grid[r][c].update(neighbors[r][c]);
-                }
-            }
-        }
-    
-        void add_alive(int r, int c) {
-            assert(r >= 0 && r < static_cast<int>(_grid.size()));
-            assert(c >= 0 && c < static_cast<int>(_grid[0].size()));
+   
+    void replace_cell(int r, int c) {
+        assert(r >= 0 && r < static_cast<int>(_rows));
+        assert(c >= 0 && c < static_cast<int>(_cols));
+        if constexpr (!std::is_same_v<T, Cell>) {
             _grid[r][c] = T(true);
-        }
+        } else {
+            _grid[r][c] = Cell(new FredkinCell(true));
+        }        
+    }
+
     
-        int population() const {
-            int total = 0;
-            for (const auto& row : _grid) {
-                for (const auto& cell : row) {
-                    total += cell.alive();
-                }
-            }
-            return total;
-        }
-    
-        void print_board() const {
-            for (const auto& row : _grid) {
-                for (const auto& cell : row) {
-                    cell.render(cout);
-                }
-                cout << '\n';
+    void eval() {
+        auto neighbors = compute_neighbor_counts();
+        
+        for (size_t r = 0; r < _rows; ++r) {
+            size_t c = 0;
+            for (auto& cell : _grid[r]) {
+                cell.update(neighbors[r][c]);
+                ++c;
             }
         }
-    };
+        
+        ++_generation;
+    }
     
+
+    void print_cell(size_t r, size_t c, ostream& os) const {
+        assert(r < _rows && c < _cols);
+        _grid[r][c].print(os);
+    }
+    
+    int population() const {
+        int total = 0;
+        for (const auto& row : _grid) {
+            for (const auto& cell : row) {
+                int cell_alive = 0;
+                cell.next_Evolution(cell_alive);
+                total += cell_alive;
+            }
+        }
+        return total;
+    }
+};
+
 #endif // Life_hpp
